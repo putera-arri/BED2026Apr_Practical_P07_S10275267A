@@ -1,0 +1,136 @@
+# Practical 04 – Homework Reflection
+
+## Task 1: Reflection on Refactoring
+
+### 1. What were the main changes you made to refactor the code into MVC architecture? Describe how you moved code between files and folders.
+
+The main change I made was separating the application into different layers following the MVC architecture. Previously, all the code was written inside `app.js`, including routes, database queries, and request handling logic. After refactoring, I created separate folders for models, controllers, and middlewares.
+
+I moved all database-related code and SQL queries into `models/bookModel.js`. This file is responsible for handling all interactions with the database such as retrieving, creating, updating, and deleting books.
+
+I moved the request handling logic into `controllers/bookController.js`. The controller functions receive requests from the routes, call the appropriate model functions, and send responses back to the client.
+
+I created validation middleware in `middlewares/bookValidation.js` to validate incoming request data before it reaches the controller. This includes validating book IDs and checking that required fields such as title and author are provided correctly.
+
+The `app.js` file became much cleaner because it now mainly handles application setup, middleware configuration, and route definitions.
+
+---
+
+### 2. What challenges did you face during the refactoring process?
+
+One challenge I faced was understanding how the different MVC layers communicate with each other. At first, it was confusing to know which logic should belong in the model, controller, or middleware.
+
+Another challenge was handling imports and exports correctly between files. Sometimes the server would crash because functions were not exported properly or file paths were incorrect.
+
+I also faced issues with database connections and validation middleware when testing with Postman. Some errors occurred because the middleware order in the routes was incorrect or because request parameters were not being parsed properly.
+
+However, after organizing the files carefully and testing each part individually, the application became more stable and easier to debug.
+
+---
+
+### 3. How does the MVC structure change the way you think about adding new features or modifying existing ones compared to the previous non-MVC structure?
+
+The MVC structure makes adding new features much more organized. Instead of placing everything inside one large file, I can now work on specific parts of the application independently.
+
+For example, if I want to add a new database operation, I only need to modify the model file. If I want to change how responses are handled, I only need to edit the controller. Validation rules can also be updated separately in middleware files.
+
+Compared to the previous non-MVC structure, the code is now modular and reusable. It is easier to understand where each function belongs, which makes future development faster and more manageable.
+
+---
+
+### 4. In what specific ways do you think the MVC version is more organized or easier to understand and maintain than the previous version where all logic was in `app.js`?
+
+The MVC version is more organized because each file has a clear responsibility. The model handles database operations, the controller handles requests and responses, and middleware handles validation.
+
+This separation makes the project structure cleaner and easier to navigate. Developers can quickly locate the part of the application they want to modify without searching through a large file.
+
+It also improves maintainability because changes in one part of the application usually do not affect other parts. Bugs are easier to identify and fix because responsibilities are separated logically.
+
+Additionally, the smaller files are easier to read and understand compared to having hundreds of lines of mixed code inside `app.js`.
+
+---
+
+### 5. Explain how separating concerns (putting database logic in the Model and request handling in the Controller) makes the code better from a development perspective.
+
+Separating concerns improves the quality and maintainability of the code. By placing database logic in the model, the application keeps all SQL-related operations centralized in one place. This makes database management more consistent and easier to update.
+
+Keeping request handling inside controllers allows controllers to focus only on processing requests, handling responses, and managing application flow. This makes the code cleaner and easier to debug.
+
+From a development perspective, separation of concerns also improves teamwork because different developers can work on models, controllers, or middleware independently without interfering with each other’s code.
+
+It also increases code reusability because the same model functions can be reused by multiple controllers or routes.
+
+---
+
+# Task 2: Reflecting on Robustness & Security
+
+### 1. How does implementing input validation middleware make the API more reliable and user-friendly? Provide an example of invalid input that your validation would now handle.
+
+Input validation middleware improves reliability by ensuring that only valid data is accepted before processing the request. This prevents invalid or incomplete data from entering the database and causing unexpected errors.
+
+It also makes the API more user-friendly because users receive clear and immediate error messages explaining what is wrong with their input.
+
+For example, if a user sends a POST request with an empty title:
+
+```json
+{
+  "title": "",
+  "author": "J.K. Rowling"
+}
+```
+
+The validation middleware will reject the request and return a `400 Bad Request` response with an error message such as:
+
+```json
+{
+  "error": "Title cannot be empty"
+}
+```
+
+This helps users correct their mistakes quickly.
+
+---
+
+### 2. Explain in your own words how parameterized queries prevent SQL injection attacks. Why is this approach fundamentally more secure than building SQL query strings by concatenating variable data?
+
+Parameterized queries prevent SQL injection by separating SQL commands from user input data. Instead of directly inserting user input into the SQL query string, values are passed safely as parameters using methods like `request.input()`.
+
+This is more secure because the database treats the user input strictly as data rather than executable SQL code. Even if a user enters malicious SQL commands, they will not be executed by the database.
+
+For example, using string concatenation:
+
+```javascript
+"SELECT * FROM Books WHERE id = " + userInput
+```
+
+could allow attackers to inject harmful SQL statements.
+
+With parameterized queries:
+
+```javascript
+request.input("id", userInput)
+```
+
+the database safely handles the value and prevents the attack.
+
+This approach fundamentally improves security because it removes the possibility of user input modifying the structure of the SQL query itself.
+
+---
+
+### 3. Consider a potential security risk for an API (other than SQL injection, e.g., brute-force attacks, exposing sensitive data in responses). How might robust error handling help mitigate such a risk?
+
+Robust error handling helps protect the API by preventing sensitive system information from being exposed to users. If detailed error messages are shown directly to clients, attackers may learn about the database structure, server configuration, or application logic.
+
+For example, if the API exposes raw database errors, attackers could gather information that helps them plan further attacks.
+
+Instead, proper error handling should log detailed errors internally on the server while returning only generic messages such as:
+
+```json
+{
+  "error": "Internal Server Error"
+}
+```
+
+to the client.
+
+This reduces the amount of sensitive information available to attackers and improves overall security. It also makes the application appear more professional and stable to users.
